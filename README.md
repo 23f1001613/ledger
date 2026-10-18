@@ -100,3 +100,20 @@ Invoke-RestMethod -Method POST https://<your-service-name>.onrender.com/ask -Con
 ## Keep it awake through grading
 
 Render free instances sleep when idle. Hit `/health` every 5–10 minutes (UptimeRobot or similar) until the grading deadline so live checks do not time out.
+
+## After a code fix: push and redeploy
+
+```powershell
+cd d:\projects\gagan_project\ledger-agent-server
+git add qa.py test_local.py README.md
+git commit -m "Count distinct customers for how-many-customers questions"
+git push
+```
+
+Wait for Render to finish deploying, then verify:
+
+```powershell
+Invoke-RestMethod -Method POST https://ledger-agent-server-gazy.onrender.com/ask -ContentType 'application/json' -Body '{"question":"How many different customers placed at least one paid order for a Toaster?"}'
+```
+
+Expect `answer` = `206`. Then resubmit the same URL in the exam form.

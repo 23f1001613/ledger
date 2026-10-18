@@ -59,10 +59,17 @@ def expected_top_product_west() -> str:
     return max(buckets.items(), key=lambda kv: (kv[1], kv[0]))[0]
 
 
+def expected_distinct_toaster_customers() -> int:
+    rates = fetch_rates(DEFAULT_BASE_URL)
+    orders = normalize_orders(fetch_export_rows(DEFAULT_BASE_URL), rates)
+    return len({o.customer for o in orders if o.status == "paid" and o.product == "Toaster"})
+
+
 def main() -> None:
     failures = 0
     want_rev = expected_north_march_revenue()
     want_prod = expected_top_product_west()
+    want_customers = expected_distinct_toaster_customers()
 
     cases = [
         (
@@ -84,6 +91,14 @@ def main() -> None:
         (
             "Top product by revenue in West",
             want_prod,
+        ),
+        (
+            "How many different customers placed at least one paid order for a Toaster?",
+            want_customers,
+        ),
+        (
+            "Number of unique customers with a paid Toaster order",
+            want_customers,
         ),
     ]
 

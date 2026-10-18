@@ -142,6 +142,13 @@ def parse_question(question: str) -> Intent:
         r"\b(order|revenue|sale|value|aov)\b", ql
     ):
         metric = "avg_order_value"
+    elif re.search(
+        r"\b(how many|number of|count of|# of)\b.*\b(different |unique |distinct )?customers?\b|"
+        r"\b(different|unique|distinct)\s+customers?\b|"
+        r"\bcustomers?\b.*\b(how many|number|count)\b",
+        ql,
+    ):
+        metric = "distinct_customers"
     elif (
         re.search(r"\bhow many\b|\bnumber of\b|\bcount of\b|\border count\b|\b# of\b", ql)
         or (
@@ -151,7 +158,6 @@ def parse_question(question: str) -> Intent:
         )
     ) and (
         re.search(r"\border", ql)
-        or re.search(r"\bcustomers?\b", ql)
         or (status is not None and not product)
     ):
         metric = "order_count"
@@ -174,7 +180,7 @@ def parse_question(question: str) -> Intent:
         status = "paid"
     if metric == "total_refunds":
         status = "refunded"
-    if metric in ("units_sold", "avg_order_value") and status is None:
+    if metric in ("units_sold", "avg_order_value", "distinct_customers") and status is None:
         status = "paid"
     if metric in ("top_product", "top_customer") and status is None:
         status = "paid"
@@ -227,6 +233,9 @@ def answer_question(question: str) -> Any:
 
     if intent.metric == "order_count":
         return len(rows)
+
+    if intent.metric == "distinct_customers":
+        return len({o.customer for o in rows})
 
     if intent.metric == "units_sold":
         return sum(o.qty for o in rows)
